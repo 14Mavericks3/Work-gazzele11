@@ -34,7 +34,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Helvetica
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .fg{display:flex;flex-direction:column;gap:5px}
 label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
-input[type=date],input[type=number]{background:var(--card2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:16px;font-weight:600;padding:11px 12px;width:100%;outline:none;-webkit-appearance:none;appearance:none}
+input[type=date],input[type=number],input[type=text]{background:var(--card2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:16px;font-weight:600;padding:11px 12px;width:100%;outline:none;-webkit-appearance:none;appearance:none}
 input:focus{border-color:var(--accent)}
 input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.6)}
 .prev{background:var(--card2);border:1px dashed var(--border);border-radius:10px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
@@ -47,9 +47,10 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.6)}
 .thead{display:grid;grid-template-columns:72px 1fr 1fr 1fr 44px;gap:4px;padding:6px 12px;margin-bottom:5px}
 .thead span{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase}
 .thead span:not(:first-child){text-align:right}
-.entry{background:var(--card);border:1px solid var(--border);border-radius:13px;display:grid;grid-template-columns:72px 1fr 1fr 1fr 44px;gap:4px;align-items:center;padding:12px;margin-bottom:7px}
+.entry{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:12px;margin-bottom:7px}
 .entry.paid{border-color:rgba(46,204,113,0.3);background:rgba(46,204,113,0.04)}
 .entry.unpaid{border-color:rgba(231,76,60,0.3)}
+.entry-main{display:grid;grid-template-columns:72px 1fr 1fr 1fr 44px;gap:4px;align-items:center}
 .edate{font-size:13px;font-weight:600;line-height:1.4}
 .edate small{display:block;font-size:10px;color:var(--muted);font-weight:400}
 .etotal{text-align:right;font-size:13px;font-weight:700}
@@ -62,6 +63,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.6)}
 .bp{background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.35)}
 .bd{background:rgba(231,76,60,0.1);color:var(--red);border:1px solid rgba(231,76,60,0.3)}
 .bp:active,.bd:active{opacity:0.6}
+.ecomment{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);font-style:italic}
+.ecomment span{color:#c0a060}
 .empty{text-align:center;padding:40px 20px;color:var(--muted)}
 .empty .ico{font-size:48px;margin-bottom:12px}
 .empty p{font-size:14px;line-height:1.6}
@@ -112,6 +115,10 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.6)}
         <input type="number" id="iTotal" placeholder="3000" inputmode="numeric" min="1">
       </div>
     </div>
+    <div class="fg" style="margin-bottom:10px">
+      <label>Комментарий (необязательно)</label>
+      <input type="text" id="iComment" placeholder="Напр: чаевые, доп. рейс...">
+    </div>
     <div class="prev">
       <span class="pl">Моя доля (50%)</span>
       <span class="pv" id="prevVal">— ₽</span>
@@ -152,6 +159,7 @@ function render(){
   for(var j=0;j<entries.length;j++){
     var e=entries[j];var df=fmtDate(e.date);var debt=e.paid?0:e.mine;
     html+='<div class="entry '+(e.paid?'paid':'unpaid')+'">';
+    html+='<div class="entry-main">';
     html+='<div class="edate">'+df.main+'<small>'+df.day+'</small></div>';
     html+='<div class="etotal">'+fmt(e.total)+'</div>';
     html+='<div class="emine">'+fmt(e.mine)+'</div>';
@@ -160,13 +168,26 @@ function render(){
     if(!e.paid)html+='<button class="bp" data-id="'+e.id+'">✓</button>';
     html+='<button class="bd" data-id="'+e.id+'">✕</button>';
     html+='</div></div>';
+    if(e.comment)html+='<div class="ecomment">💬 <span>'+e.comment+'</span></div>';
+    html+='</div>';
   }
   list.innerHTML=html;
   list.querySelectorAll('.bp').forEach(function(b){b.addEventListener('click',function(){var id=+this.dataset.id;for(var i=0;i<entries.length;i++)if(entries[i].id===id){entries[i].paid=true;break;}save();render();});});
   list.querySelectorAll('.bd').forEach(function(b){b.addEventListener('click',function(){var id=+this.dataset.id;if(confirm('Удалить эту запись?')){entries=entries.filter(function(e){return e.id!==id;});save();render();}});});
 }
 document.getElementById('iTotal').addEventListener('input',function(){var v=parseFloat(this.value);document.getElementById('prevVal').textContent=v>0?fmt(v/2):'— ₽';});
-document.getElementById('btnAdd').addEventListener('click',function(){var dv=document.getElementById('iDate').value;var tv=parseFloat(document.getElementById('iTotal').value);if(!dv){alert('Укажи дату!');return;}if(!tv||tv<=0){alert('Укажи сумму!');return;}entries.unshift({id:idc++,date:dv,total:tv,mine:tv/2,paid:false});document.getElementById('iTotal').value='';document.getElementById('prevVal').textContent='— ₽';save();render();});
+document.getElementById('btnAdd').addEventListener('click',function(){
+  var dv=document.getElementById('iDate').value;
+  var tv=parseFloat(document.getElementById('iTotal').value);
+  var cv=document.getElementById('iComment').value.trim();
+  if(!dv){alert('Укажи дату!');return;}
+  if(!tv||tv<=0){alert('Укажи сумму!');return;}
+  entries.unshift({id:idc++,date:dv,total:tv,mine:tv/2,paid:false,comment:cv});
+  document.getElementById('iTotal').value='';
+  document.getElementById('iComment').value='';
+  document.getElementById('prevVal').textContent='— ₽';
+  save();render();
+});
 document.getElementById('btnClear').addEventListener('click',function(){if(confirm('Пометить весь долг как выплаченный?')){entries.forEach(function(e){e.paid=true;});save();render();}});
 load();render();
 </script>
