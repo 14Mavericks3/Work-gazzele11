@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Газель — Учёт</title>
+<style>
+:root {
+  --bg:#0f0f13;--card:#1a1a22;--card2:#22222e;
+  --accent:#f5a623;--accent2:#ff6b35;
+  --green:#2ecc71;--red:#e74c3c;
+  --text:#f0f0f5;--muted:#8888a0;--border:#2e2e3e;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,'Helvetica Neue',sans-serif;min-height:100vh;padding-bottom:60px}
+.header{background:#1a1a22;border-bottom:1px solid var(--border);padding:18px 18px 14px;position:sticky;top:0;z-index:10}
+.hrow{display:flex;align-items:center;justify-content:space-between}
+.hleft{display:flex;align-items:center;gap:10px}
+.header h1{font-size:20px;font-weight:800;background:linear-gradient(90deg,#f5a623,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header p{font-size:11px;color:var(--muted)}
+.badge{background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);border-radius:20px;padding:5px 12px;font-size:12px;color:#2ecc71;font-weight:600;display:none}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 16px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.sl{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.sv{font-size:20px;font-weight:800;color:var(--accent)}
+.ss{font-size:11px;color:var(--muted);margin-top:3px}
+.debt-banner{margin:0 16px 14px;background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.35);border-radius:16px;padding:14px 16px;display:none;align-items:center;justify-content:space-between}
+.dlabel{font-size:13px;color:var(--muted);margin-bottom:3px}
+.damount{font-size:26px;font-weight:800;color:var(--red)}
+.add-section{padding:0 16px 14px}
+.stitle{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.fcard{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.fg{display:flex;flex-direction:column;gap:5px}
+label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+input[type=date],input[type=number]{background:var(--card2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:16px;font-weight:600;padding:11px 12px;width:100%;outline:none;-webkit-appearance:none;appearance:none}
+input:focus{border-color:var(--accent)}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.6)}
+.prev{background:var(--card2);border:1px dashed var(--border);border-radius:10px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.pl{font-size:13px;color:var(--muted)}
+.pv{font-size:20px;font-weight:800;color:var(--green)}
+.btn-add{width:100%;background:linear-gradient(135deg,#f5a623,#ff6b35);border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:800;padding:15px;cursor:pointer;font-family:inherit;-webkit-appearance:none}
+.btn-add:active{opacity:0.8}
+.btn-clear{background:var(--red);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:700;padding:10px 14px;cursor:pointer;line-height:1.4;text-align:center;font-family:inherit}
+.tsec{padding:0 16px}
+.thead{display:grid;grid-template-columns:72px 1fr 1fr 1fr 44px;gap:4px;padding:6px 12px;margin-bottom:5px}
+.thead span{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase}
+.thead span:not(:first-child){text-align:right}
+.entry{background:var(--card);border:1px solid var(--border);border-radius:13px;display:grid;grid-template-columns:72px 1fr 1fr 1fr 44px;gap:4px;align-items:center;padding:12px;margin-bottom:7px}
+.entry.paid{border-color:rgba(46,204,113,0.3);background:rgba(46,204,113,0.04)}
+.entry.unpaid{border-color:rgba(231,76,60,0.3)}
+.edate{font-size:13px;font-weight:600;line-height:1.4}
+.edate small{display:block;font-size:10px;color:var(--muted);font-weight:400}
+.etotal{text-align:right;font-size:13px;font-weight:700}
+.emine{text-align:right;font-size:13px;font-weight:700;color:var(--accent)}
+.edebt{text-align:right;font-size:13px;font-weight:700}
+.edebt.red{color:var(--red)}
+.edebt.ok{color:var(--green);font-size:18px}
+.eact{display:flex;flex-direction:column;gap:4px;align-items:center}
+.bp,.bd{width:34px;height:34px;border-radius:9px;font-size:15px;cursor:pointer;font-family:inherit;-webkit-appearance:none;display:flex;align-items:center;justify-content:center}
+.bp{background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.35)}
+.bd{background:rgba(231,76,60,0.1);color:var(--red);border:1px solid rgba(231,76,60,0.3)}
+.bp:active,.bd:active{opacity:0.6}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty .ico{font-size:48px;margin-bottom:12px}
+.empty p{font-size:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="hrow">
+    <div class="hleft">
+      <span style="font-size:26px">🚚</span>
+      <div>
+        <h1>Газель — Учёт</h1>
+        <p>Ты и папа • 50 / 50</p>
+      </div>
+    </div>
+    <div class="badge" id="badge">✓ Сохранено</div>
+  </div>
+</div>
+<div class="stats">
+  <div class="sc">
+    <div class="sl">Заработано всего</div>
+    <div class="sv" id="sTotal">0 ₽</div>
+    <div class="ss" id="sDays">0 дней</div>
+  </div>
+  <div class="sc">
+    <div class="sl">Мой доход всего</div>
+    <div class="sv" id="sMine">0 ₽</div>
+    <div class="ss">моя половина</div>
+  </div>
+</div>
+<div class="debt-banner" id="debtBanner">
+  <div>
+    <div class="dlabel">💸 Папа должен мне</div>
+    <div class="damount" id="sDebt">0 ₽</div>
+  </div>
+  <button class="btn-clear" id="btnClear">Погасить<br>весь долг</button>
+</div>
+<div class="add-section">
+  <div class="stitle">Добавить запись</div>
+  <div class="fcard">
+    <div class="frow">
+      <div class="fg">
+        <label>Дата</label>
+        <input type="date" id="iDate">
+      </div>
+      <div class="fg">
+        <label>Сумма ₽</label>
+        <input type="number" id="iTotal" placeholder="3000" inputmode="numeric" min="1">
+      </div>
+    </div>
+    <div class="prev">
+      <span class="pl">Моя доля (50%)</span>
+      <span class="pv" id="prevVal">— ₽</span>
+    </div>
+    <button class="btn-add" id="btnAdd">+ Добавить запись</button>
+  </div>
+</div>
+<div class="tsec">
+  <div class="stitle">История</div>
+  <div class="thead">
+    <span>Дата</span><span>Всего</span><span>Моё</span><span>Долг</span><span></span>
+  </div>
+  <div id="list"></div>
+</div>
+<script>
+var MONTHS=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+var DAYS=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+var entries=[];var idc=1;
+function pad2(n){return n<10?'0'+n:''+n}
+var t=new Date();
+document.getElementById('iDate').value=t.getFullYear()+'-'+pad2(t.getMonth()+1)+'-'+pad2(t.getDate());
+function load(){try{var s=localStorage.getItem('gazelle');if(s){var d=JSON.parse(s);entries=d.e||[];idc=d.i||1;}}catch(e){}}
+function save(){try{localStorage.setItem('gazelle',JSON.stringify({e:entries,i:idc}));var b=document.getElementById('badge');b.style.display='block';setTimeout(function(){b.style.display='none';},1500);}catch(e){}}
+function fmt(n){var s=String(Math.round(n)),r='',l=s.length;for(var i=0;i<l;i++){if(i>0&&(l-i)%3===0)r+=' ';r+=s[i];}return r+' ₽';}
+function fmtDate(s){var p=s.split('-');var d=new Date(+p[0],+p[1]-1,+p[2]);return{main:d.getDate()+' '+MONTHS[d.getMonth()],day:DAYS[d.getDay()]};}
+function plural(n){var n2=Math.abs(n)%100,n1=n2%10;if(n2>10&&n2<20)return'дней';if(n1>1&&n1<5)return'дня';if(n1===1)return'день';return'дней';}
+function render(){
+  var te=0,tm=0,td=0;
+  for(var i=0;i<entries.length;i++){te+=entries[i].total;tm+=entries[i].mine;if(!entries[i].paid)td+=entries[i].mine;}
+  document.getElementById('sTotal').textContent=fmt(te);
+  document.getElementById('sMine').textContent=fmt(tm);
+  document.getElementById('sDebt').textContent=fmt(td);
+  document.getElementById('sDays').textContent=entries.length+' '+plural(entries.length);
+  document.getElementById('debtBanner').style.display=td>0?'flex':'none';
+  var list=document.getElementById('list');
+  if(entries.length===0){list.innerHTML='<div class="empty"><div class="ico">📋</div><p>Записей пока нет.<br>Добавь первую рабочую смену!</p></div>';return;}
+  var html='';
+  for(var j=0;j<entries.length;j++){
+    var e=entries[j];var df=fmtDate(e.date);var debt=e.paid?0:e.mine;
+    html+='<div class="entry '+(e.paid?'paid':'unpaid')+'">';
+    html+='<div class="edate">'+df.main+'<small>'+df.day+'</small></div>';
+    html+='<div class="etotal">'+fmt(e.total)+'</div>';
+    html+='<div class="emine">'+fmt(e.mine)+'</div>';
+    html+='<div class="edebt '+(debt>0?'red':'ok')+'">'+(debt>0?fmt(debt):'✓')+'</div>';
+    html+='<div class="eact">';
+    if(!e.paid)html+='<button class="bp" data-id="'+e.id+'">✓</button>';
+    html+='<button class="bd" data-id="'+e.id+'">✕</button>';
+    html+='</div></div>';
+  }
+  list.innerHTML=html;
+  list.querySelectorAll('.bp').forEach(function(b){b.addEventListener('click',function(){var id=+this.dataset.id;for(var i=0;i<entries.length;i++)if(entries[i].id===id){entries[i].paid=true;break;}save();render();});});
+  list.querySelectorAll('.bd').forEach(function(b){b.addEventListener('click',function(){var id=+this.dataset.id;if(confirm('Удалить эту запись?')){entries=entries.filter(function(e){return e.id!==id;});save();render();}});});
+}
+document.getElementById('iTotal').addEventListener('input',function(){var v=parseFloat(this.value);document.getElementById('prevVal').textContent=v>0?fmt(v/2):'— ₽';});
+document.getElementById('btnAdd').addEventListener('click',function(){var dv=document.getElementById('iDate').value;var tv=parseFloat(document.getElementById('iTotal').value);if(!dv){alert('Укажи дату!');return;}if(!tv||tv<=0){alert('Укажи сумму!');return;}entries.unshift({id:idc++,date:dv,total:tv,mine:tv/2,paid:false});document.getElementById('iTotal').value='';document.getElementById('prevVal').textContent='— ₽';save();render();});
+document.getElementById('btnClear').addEventListener('click',function(){if(confirm('Пометить весь долг как выплаченный?')){entries.forEach(function(e){e.paid=true;});save();render();}});
+load();render();
+</script>
+</body>
+</html>
